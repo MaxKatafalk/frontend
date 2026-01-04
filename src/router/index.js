@@ -29,11 +29,6 @@ const router = createRouter({
       component: () => import('@/views/RegisterView.vue')
     },
     {
-      path: '/profile',
-      name: 'profile',
-      component: () => import('@/views/ProfileView.vue')
-    },
-    {
       path: '/articles/create',
       name: 'create-article',
       component: () => import('@/views/CreateArticleView.vue')
@@ -42,6 +37,11 @@ const router = createRouter({
       path: '/articles/my',
       name: 'my-articles',
       component: () => import('@/views/MyArticlesView.vue')
+    },
+    {
+      path: '/articles/edit/:id',
+      name: 'edit-article',
+      component: () => import('@/views/EditArticleView.vue')
     }
   ]
 })

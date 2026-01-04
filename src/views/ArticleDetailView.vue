@@ -26,6 +26,18 @@
         {{ article.text }}
       </div>
       
+      <div v-if="isAuthenticated && article.user_id === currentUserId" style="margin-bottom: 20px; padding-top: 15px; border-top: 1px solid #ddd;">
+        <router-link :to="`/articles/edit/${article.id}`" style="padding: 8px 15px; background: #ffc107; color: black; text-decoration: none; margin-right: 10px;">
+          Редактировать
+        </router-link>
+        <button 
+          @click="deleteArticle" 
+          style="padding: 8px 15px; background: #dc3545; color: white; border: none;"
+        >
+          Удалить
+        </button>
+      </div>
+      
       <div style="border-top: 2px solid #ddd; padding-top: 15px;">
         <h3>Комментарии</h3>
         
@@ -81,10 +93,12 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
+import { articleApi } from '@/api/articles'
 
 const route = useRoute()
+const router = useRouter()
 const { isAuthenticated } = useAuth()
 
 const article = ref(null)
@@ -96,23 +110,23 @@ const newComment = ref({
 const submittingComment = ref(false)
 
 const articleId = computed(() => route.params.id)
+const currentUserId = computed(() => {
+  const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
+  return currentUser.id || null
+})
 
 const loadArticle = async () => {
   try {
     loading.value = true
-    const response = await fetch(`/api/public/articles/${articleId.value}`)
-    if (!response.ok) {
-      throw new Error('Статья не найдена')
-    }
-    const data = await response.json()
-    article.value = data
+    const response = await articleApi.getPublicArticle(articleId.value)
+    article.value = response.data
     
     if (isAuthenticated.value) {
-      const user = JSON.parse(localStorage.getItem('user') || '{}')
-      newComment.value.author_name = user.name || ''
+      const userData = JSON.parse(localStorage.getItem('user') || '{}')
+      newComment.value.author_name = userData.name || ''
     }
-  } catch (error) {
-    console.log('Ошибка загрузки статьи:', error)
+  } catch (err) {
+    console.log('Ошибка загрузки статьи:', err)
     article.value = null
   } finally {
     loading.value = false
@@ -157,6 +171,18 @@ const submitComment = async () => {
     alert('Ошибка отправки')
   } finally {
     submittingComment.value = false
+  }
+}
+
+const deleteArticle = async () => {
+  if (!confirm('Удалить статью?')) return
+  
+  try {
+    await articleApi.deleteArticle(articleId.value)
+    router.push('/')
+  } catch (err) {
+    console.log('Ошибка удаления:', err)
+    alert('Не удалось удалить статью')
   }
 }
 

@@ -2,8 +2,8 @@
   <div>
     <h2>Профиль</h2>
     <div v-if="user">
-      <p><strong>Имя:</strong> {{ user.name }}</p>
-      <p><strong>Email:</strong> {{ user.email }}</p>
+      <p>Имя: {{ user.name }}</p>
+      <p>Email: {{ user.email }}</p>
     </div>
   </div>
 </template>

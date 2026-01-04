@@ -2,13 +2,6 @@
   <div>
     <h1>Новостной сайт</h1>
     
-    <div style="background: #eee; padding: 8px; margin-bottom: 15px;">
-      <button @click="testApi" style="padding: 5px 10px; margin-right: 10px;">
-        Проверить API
-      </button>
-      <span v-if="testResult" style="color: #333;">{{ testResult }}</span>
-    </div>
-    
     <div v-if="categories.length > 0">
       <h3>Категории:</h3>
       <div style="margin-bottom: 15px;">

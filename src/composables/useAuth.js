@@ -1,10 +1,23 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+// Вспомогательная функция для безопасного получения данных из localStorage
+function getSafeLocalStorage(key) {
+  try {
+    const item = localStorage.getItem(key)
+    if (item && item !== 'undefined') {
+      return JSON.parse(item)
+    }
+  } catch (e) {
+    console.error(`Failed to parse ${key} from localStorage:`, e)
+  }
+  return null
+}
+
 export function useAuth() {
   const router = useRouter()
   
-  const user = ref(JSON.parse(localStorage.getItem('user') || 'null'))
+  const user = ref(getSafeLocalStorage('user'))
   const isLoading = ref(false)
   const error = ref('')
   
@@ -12,7 +25,7 @@ export function useAuth() {
   
   const checkAuth = () => {
     const token = localStorage.getItem('access_token')
-    const userData = JSON.parse(localStorage.getItem('user') || 'null')
+    const userData = getSafeLocalStorage('user')
     
     if (token && userData) {
       user.value = userData
@@ -34,16 +47,20 @@ export function useAuth() {
       
       const data = await response.json()
       
-      localStorage.setItem('access_token', data.access_token)
-      localStorage.setItem('refresh_token', data.refresh_token)
-      localStorage.setItem('user', JSON.stringify(data.user))
-      
-      user.value = data.user
-      
-      router.push('/')
+      if (response.ok) {
+        localStorage.setItem('access_token', data.access_token)
+        localStorage.setItem('refresh_token', data.refresh_token)
+        localStorage.setItem('user', JSON.stringify(data.user))
+        
+        user.value = data.user
+        
+        router.push('/')
+      } else {
+        error.value = data.error || 'Ошибка входа'
+      }
       
     } catch (err) {
-      error.value = err.response?.data?.error || 'Ошибка'
+      error.value = err.message || 'Ошибка соединения'
     } finally {
       isLoading.value = false
     }
@@ -62,16 +79,20 @@ export function useAuth() {
       
       const data = await response.json()
       
-      localStorage.setItem('access_token', data.access_token)
-      localStorage.setItem('refresh_token', data.refresh_token)
-      localStorage.setItem('user', JSON.stringify(data.user))
-      
-      user.value = data.user
-      
-      router.push('/')
+      if (response.ok) {
+        localStorage.setItem('access_token', data.access_token)
+        localStorage.setItem('refresh_token', data.refresh_token)
+        localStorage.setItem('user', JSON.stringify(data.user))
+        
+        user.value = data.user
+        
+        router.push('/')
+      } else {
+        error.value = data.error || 'Ошибка регистрации'
+      }
       
     } catch (err) {
-      error.value = err.message || 'Ошибка'
+      error.value = err.message || 'Ошибка соединения'
     } finally {
       isLoading.value = false
     }
@@ -101,19 +122,31 @@ export function useAuth() {
   }
   
   const getCurrentUser = async () => {
-    if (!localStorage.getItem('access_token')) return null
+    const token = localStorage.getItem('access_token')
+    if (!token) {
+      return null
+    }
     
     try {
       const response = await fetch('/api/auth/me', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+          'Authorization': `Bearer ${token}`
         }
       })
       
-      const data = await response.json()
-      localStorage.setItem('user', JSON.stringify(data.user))
-      user.value = data.user
-      return data.user
+      if (response.ok) {
+        const data = await response.json()
+        localStorage.setItem('user', JSON.stringify(data.user))
+        user.value = data.user
+        return data.user
+      } else {
+        // Если запрос не удался, очищаем хранилище
+        localStorage.removeItem('access_token')
+        localStorage.removeItem('refresh_token')
+        localStorage.removeItem('user')
+        user.value = null
+        return null
+      }
     } catch (err) {
       console.log(err)
       return null
@@ -121,7 +154,8 @@ export function useAuth() {
   }
   
   onMounted(() => {
-    if (localStorage.getItem('access_token')) {
+    const token = localStorage.getItem('access_token')
+    if (token) {
       getCurrentUser()
     }
   })

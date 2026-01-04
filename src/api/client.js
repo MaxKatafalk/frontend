@@ -3,8 +3,8 @@ import axios from 'axios'
 const apiClient = axios.create({
   baseURL: '/api',
   headers: {
-    'Content-Type': 'application/json'
-  }
+    'Content-Type': 'application/json',
+  },
 })
 
 apiClient.interceptors.request.use(
@@ -17,7 +17,7 @@ apiClient.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error)
-  }
+  },
 )
 
 apiClient.interceptors.response.use(
@@ -27,21 +27,21 @@ apiClient.interceptors.response.use(
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true
-      
+
       try {
         const refreshToken = localStorage.getItem('refresh_token')
         if (!refreshToken) {
           throw new Error('No refresh token')
         }
-        
+
         // ИСПРАВЛЕНО: используем apiClient, а не axios
         const response = await apiClient.post('/auth/refresh', {
-          refresh_token: refreshToken
+          refresh_token: refreshToken,
         })
-        
+
         const newAccessToken = response.data.access_token
         localStorage.setItem('access_token', newAccessToken)
-        
+
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
         return apiClient(originalRequest)
       } catch (refreshError) {
@@ -52,9 +52,9 @@ apiClient.interceptors.response.use(
         return Promise.reject(refreshError)
       }
     }
-    
+
     return Promise.reject(error)
-  }
+  },
 )
 
 export default apiClient

@@ -1,42 +1,47 @@
 <template>
   <div>
     <h1>Новостной сайт</h1>
-    
+
     <div v-if="categories.length > 0">
       <h3>Категории:</h3>
-      <div style="margin-bottom: 15px;">
-        <button 
+      <div style="margin-bottom: 15px">
+        <button
           @click="selectCategory(null)"
-          :style="selectedCategory === null ? 'background: #007bff; color: white; padding: 5px 10px; border: 1px solid #007bff; margin-right: 5px;' : 'background: #eee; padding: 5px 10px; border: 1px solid #ccc; margin-right: 5px;'"
+          :style="
+            selectedCategory === null
+              ? 'background: #007bff; color: white; padding: 5px 10px; border: 1px solid #007bff; margin-right: 5px;'
+              : 'background: #eee; padding: 5px 10px; border: 1px solid #ccc; margin-right: 5px;'
+          "
         >
           Все
         </button>
-        <button 
-          v-for="category in categories" 
+        <button
+          v-for="category in categories"
           :key="category"
           @click="selectCategory(category)"
-          :style="selectedCategory === category ? 'background: #007bff; color: white; padding: 5px 10px; border: 1px solid #007bff; margin-right: 5px;' : 'background: #eee; padding: 5px 10px; border: 1px solid #ccc; margin-right: 5px;'"
+          :style="
+            selectedCategory === category
+              ? 'background: #007bff; color: white; padding: 5px 10px; border: 1px solid #007bff; margin-right: 5px;'
+              : 'background: #eee; padding: 5px 10px; border: 1px solid #ccc; margin-right: 5px;'
+          "
         >
           {{ category }}
         </button>
       </div>
     </div>
-    
-    <div v-if="loading" style="text-align: center; padding: 20px;">
-      Загрузка...
-    </div>
-    
-    <div v-if="!loading && articles.length === 0" style="text-align: center; padding: 20px; color: #666;">
+
+    <div v-if="loading" style="text-align: center; padding: 20px">Загрузка...</div>
+
+    <div
+      v-if="!loading && articles.length === 0"
+      style="text-align: center; padding: 20px; color: #666"
+    >
       Статей нет
     </div>
-    
+
     <div v-if="!loading && articles.length > 0">
       <h3>Статьи:</h3>
-      <ArticleCard 
-        v-for="article in articles" 
-        :key="article.id" 
-        :article="article"
-      />
+      <ArticleCard v-for="article in articles" :key="article.id" :article="article" />
     </div>
   </div>
 </template>
@@ -49,7 +54,6 @@ const articles = ref([])
 const categories = ref([])
 const loading = ref(true)
 const selectedCategory = ref(null)
-const testResult = ref('')
 
 const loadArticles = async () => {
   try {
@@ -58,7 +62,7 @@ const loadArticles = async () => {
     if (selectedCategory.value) {
       url += `?category=${encodeURIComponent(selectedCategory.value)}`
     }
-    
+
     const response = await fetch(url)
     const data = await response.json()
     articles.value = data
@@ -82,16 +86,6 @@ const loadCategories = async () => {
 const selectCategory = (category) => {
   selectedCategory.value = category
   loadArticles()
-}
-
-const testApi = async () => {
-  try {
-    const response = await fetch('/api/categories')
-    const data = await response.json()
-    testResult.value = `OK: ${JSON.stringify(data)}`
-  } catch (error) {
-    testResult.value = `Ошибка: ${error.message}`
-  }
 }
 
 onMounted(() => {

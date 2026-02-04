@@ -34,7 +34,6 @@ apiClient.interceptors.response.use(
           throw new Error('No refresh token')
         }
 
-        // ИСПРАВЛЕНО: используем apiClient, а не axios
         const response = await apiClient.post('/auth/refresh', {
           refresh_token: refreshToken,
         })

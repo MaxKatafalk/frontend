@@ -1,7 +1,6 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
-// Вспомогательная функция для безопасного получения данных из localStorage
 function getSafeLocalStorage(key) {
   try {
     const item = localStorage.getItem(key)
@@ -127,7 +126,6 @@ export function useAuth() {
         user.value = data.user
         return data.user
       } else {
-        // Если запрос не удался, очищаем хранилище
         localStorage.removeItem('access_token')
         localStorage.removeItem('refresh_token')
         localStorage.removeItem('user')
